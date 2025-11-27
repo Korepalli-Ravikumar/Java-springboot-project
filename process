@@ -6,3 +6,9 @@ MYSQL_HOST=jdbc:database-1.can0ws8oqjny.us-east-1.rds.amazonaws.com:3306/datasto
 MYSQL_USERNAME=admin \
 MYSQL_PASSWORD=Cloud123 \
 nohup java -jar ./datastore-0.0.7.jar > /var/log/app/nohup.out 2>&1 &
+
+----for replacement use below-----
+MYSQL_HOST=jdbc:mysql://database-1.c6n2os6k2y7d.us-east-1.rds.amazonaws.com:3306/datastore?createDatabaseIfNotExist=true \
+MYSQL_USERNAME=admin \
+MYSQL_PASSWORD=admin123 \
+nohup java -jar ./datastore-0.0.7.jar > /var/log/app/nohup.out 2>&1 &
