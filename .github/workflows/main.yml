@@ -20,23 +20,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           ############
-      - name: Setup SonarScanner CLI
-        uses: sonarsource/sonar-scanner-action@v2
-        with:
-          version: '4.9.3.5689'  # or latest
-
-
-      - name: Run SonarScanner 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6     # or latest version
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=myproject \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=$SONAR_HOST_URL
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}      # needed if self‑hosted
 
 
+      - name: Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 
       # qulity gate
