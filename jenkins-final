@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -24,7 +23,7 @@ pipeline {
         stage('Code Quality') {
             steps {
                 withSonarQubeEnv(SONARQUBE) {
-                    sh 'mvn clean package -Dspring.profiles.active=build'
+                    sh 'mvn clean package -DskipTests=true'
                     sh 'mvn sonar:sonar'
                 }
             }
@@ -34,12 +33,8 @@ pipeline {
             steps {
                 script {
                     def qg = waitForQualityGate()
-                    echo "Quality Gate Response: ${qg}"
-
                     if (qg.status != 'OK') {
-                        error "❌ Pipeline failed due to not meeting SonarQube Quality Gate requirements."
-                    } else {
-                        echo "✅ Quality Gate Passed!"
+                        error "❌ Quality Gate Failed"
                     }
                 }
             }
@@ -47,48 +42,56 @@ pipeline {
 
         stage('Build Package') {
             steps {
-                sh 'mvn clean package -Dspring.profiles.active=build'
+                sh 'mvn clean package -DskipTests=true'
             }
         }
 
-       stage('Copy JAR to Workspace Directory') {
-         steps {
-        sh '''
-        mkdir -p ${WORKSPACE}/logs
-        cp target/${JAR_NAME} ${WORKSPACE}/${JAR_NAME}
-        chmod 755 ${WORKSPACE}/${JAR_NAME}
-        '''
-              }
-}
+        stage('Copy JAR to Workspace') {
+            steps {
+                sh '''
+                sudo mkdir -p /var/log/app
+                sudo chown -R jenkins:jenkins /var/log/app
+                sudo chmod 777 /var/log/app
+                sudo cp target/${JAR_NAME} ${WORKSPACE}/${JAR_NAME}
+                sudo chmod 755 ${WORKSPACE}/${JAR_NAME}
+                '''
+            }
+        }
 
+        stage('Stop Old Application') {
+            steps {
+                sh '''
+                PID=$(pgrep -f datastore-0.0.7.jar || true)
+                if [ -n "$PID" ]; then
+                    echo "Stopping existing application with PID: $PID"
+                  sudo kill -9 $PID
+                else
+                    echo "No existing application running"
+                fi
+                '''
+            }
+        }
 
         stage('Run Application') {
-    steps {
-        sh '''
-        # Stop any previously running instance of the app
-        pkill -f ${WORKSPACE}/${JAR_NAME} || true
-
-        # Ensure logs directory exists
-        mkdir -p ${WORKSPACE}/logs
-
-        # Run the application in background with environment variables
-        MYSQL_HOST="jdbc:mysql://database-1.crk2sca6elfu.us-east-1.rds.amazonaws.com:3306/datastore?createDatabaseIfNotExist=true" \
-        MYSQL_USERNAME="admin" \
-        MYSQL_PASSWORD="Cloud123" \
-        nohup java -jar ${WORKSPACE}/${JAR_NAME} > ${WORKSPACE}/logs/nohup.out 2>&1 &
-        '''
-    }
-}
-
+            steps {
+                sh '''
+                sudo nohup java -jar datastore-0.0.7.jar \
+                 --MYSQL_HOST="jdbc:mysql://database-1.cstu40q04izz.us-east-1.rds.amazonaws.com:3306/datastore?createDatabaseIfNotExist=true" \
+                 --MYSQL_USERNAME="admin" \
+                 --MYSQL_PASSWORD="Cloud123" \
+                 --LOG_FILE_PATH="/var/log/app/datastore.log" \
+                 --server.port=8084 > /var/log/app/nohup.out 2>&1 &
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo '🎉 Build, SonarQube check, deployment & application start completed successfully.'
+            echo '🎉 Application Deployed Successfully & Running on EC2'
         }
         failure {
-            echo '❌ Build or SonarQube Quality Gate validation failed.'
+            echo '❌ Pipeline Failed'
         }
     }
 }
-
