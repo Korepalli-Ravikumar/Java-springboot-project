@@ -23,6 +23,7 @@ WantedBy=multi-user.target
 
 #if app.py is in /root home directory 
 
+
 [Unit]
 Description=Streamlit Frontend App
 After=network.target
