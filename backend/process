@@ -7,7 +7,6 @@ MYSQL_USERNAME=admin \
 MYSQL_PASSWORD=Cloud123 \
 nohup java -jar ./datastore-0.0.7.jar > /var/log/app/nohup.out 2>&1 &
 
-<<<<<<< HEAD
 
 ####edit the sudo file 
 vi /etc/sudoers
@@ -26,10 +25,3 @@ http://3.84.155.178:8080//sonarqube-webhook/
 ##for sonar token 
 
 path === adminstartion/security/users
-=======
-----for replacement use below-----
-MYSQL_HOST=jdbc:mysql://database-1.c6n2os6k2y7d.us-east-1.rds.amazonaws.com:3306/datastore?createDatabaseIfNotExist=true \
-MYSQL_USERNAME=admin \
-MYSQL_PASSWORD=admin123 \
-nohup java -jar ./datastore-0.0.7.jar > /var/log/app/nohup.out 2>&1 &
->>>>>>> 1b124180e679a7b1261b660a8e851cae69ec738f

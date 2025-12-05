@@ -49,4 +49,3 @@ systemctl status frontend
 
 #to exit venv give exit 
 # to activate source venv/bin/activate
-
